@@ -7,18 +7,21 @@ name = "hostmytables"
 organization = "hostmytables"
 bio = "hostmytables Cofounder & CEO\nRestuarants managment app."
 dob = 2018-12-24T15:19:00Z # First class dates? Why not?
-#URL = "localhost:4200"
-URL = "syncyours.com"
+#URL = "raspiplus.hopto.org:3306"
+#URL = "syncyours.com"
 
 [Api]
-listener = "8081"
+listener = "8080"
 
 [database]
 server = "192.254.181.110"
+#server = "raspiplus.hopto.org"
 port = "3306"
 user = "leenhal1_reserve"
+#user = "reserve"
 password = "1Q@w3e4r5t6yaz"
 dbname="leenhal1_reserve"
+#dbname="reserve"
 connection_max = 5000
 enabled = true
 
@@ -57,6 +60,6 @@ password = "ilmmuytojfmsmssp"
 
 [jwt]
 defaulttime = 1
-maxtime = 10
+maxtime = 100
 privKeyPath = "keys/sample_key"
 pubKeyPath = "keys/sample_key.pub"

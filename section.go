@@ -13,6 +13,11 @@ type section struct {
 	AddDate       string `json:"add_date"`
 }
 
+func (s *section) getSection(db *sql.DB) error {
+	statement := fmt.Sprintf("SELECT sections.id,sections.floor_id, sections.section_number, sections.section_name, sections.add_date FROM sections where sections.floor_id = %d", s.ID)
+	return db.QueryRow(statement).Scan(&s.ID, &s.FloorID, &s.SectionNumber, &s.SectionName, &s.AddDate)
+}
+
 func getSections(db *sql.DB, floorID int) ([]section, error) {
 	statement := fmt.Sprintf("SELECT sections.id,sections.floor_id, sections.section_number, sections.section_name, sections.add_date FROM sections where sections.floor_id = %d", floorID)
 	rows, err := db.Query(statement)
