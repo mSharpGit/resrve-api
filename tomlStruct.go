@@ -11,8 +11,8 @@ type tomlConfig struct {
 	Servers map[string]server
 	Clients clients
 	Logs    logs
-	Api     api
-	Smtp    smtp
+	API     api
+	SMTP    smtp
 	JWT     jwtToken
 }
 

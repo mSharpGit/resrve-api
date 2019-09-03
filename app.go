@@ -20,11 +20,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+//App : it handles the DB connections and the router reference
 type App struct {
 	Router *mux.Router
 	DB     *sql.DB
 }
 
+//Initialize : it initializes the app structure by the DB credentials
 func (a *App) Initialize(user, password, host, port, dbname string) {
 	var err error
 
@@ -41,6 +43,7 @@ func (a *App) Initialize(user, password, host, port, dbname string) {
 	a.initializeRoutes()
 }
 
+//Run : function to run the API
 func (a *App) Run(addr string) {
 	log.Fatal(http.ListenAndServe(addr, handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "DELETE", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(a.Router)))
 }
@@ -63,6 +66,10 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/section/{id:[0-9]+}", ValidateMiddleware(a.getSection)).Methods("GET")
 	a.Router.HandleFunc("/floor/restaurant/{id:[0-9]+}", ValidateMiddleware(a.getFloors)).Methods("GET")
 	a.Router.HandleFunc("/floor/{id:[0-9]+}", ValidateMiddleware(a.getFloor)).Methods("GET")
+	a.Router.HandleFunc("/table", ValidateMiddleware(a.addTable)).Methods("POST")
+	a.Router.HandleFunc("/table/{id:[0-9]+}", ValidateMiddleware(a.deleteTable)).Methods("DELETE")
+	a.Router.HandleFunc("/table/{id:[0-9]+}", ValidateMiddleware(a.editTable)).Methods("PUT")
+	a.Router.HandleFunc("/table/batch", ValidateMiddleware(a.editTableBatch)).Methods("PUT")
 	a.Router.HandleFunc("/table/section/{id:[0-9]+}", ValidateMiddleware(a.getTables)).Methods("GET")
 	a.Router.HandleFunc("/table/batch/{ids}", ValidateMiddleware(a.getTablesBatch)).Methods("GET")
 	a.Router.HandleFunc("/table/{id:[0-9]+}", ValidateMiddleware(a.getTable)).Methods("GET")
@@ -151,6 +158,76 @@ func (a *App) getTablesBatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondWithJSON(w, http.StatusOK, table)
+}
+func (a *App) addTable(w http.ResponseWriter, r *http.Request) {
+	var t table
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&t); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+	if err := t.addTable(a.DB); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondWithJSON(w, http.StatusCreated, t)
+}
+func (a *App) editTable(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid table ID")
+		return
+	}
+	var t table
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&t); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid resquest payload")
+		return
+	}
+	defer r.Body.Close()
+	t.ID = id
+	if err := t.editTable(a.DB); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondWithJSON(w, http.StatusOK, t)
+}
+func (a *App) editTableBatch(w http.ResponseWriter, r *http.Request) {
+	var t []table
+	decoder := json.NewDecoder(r.Body)
+	log.Println("decoder:  ", decoder)
+	if err := decoder.Decode(&t); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+	log.Println("table", t)
+	/*  if err := f.addFoodRestrictionsLink(a.DB, f); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}  */
+	_, err := editTableBatch(a.DB, t)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondWithJSON(w, http.StatusCreated, t)
+}
+func (a *App) deleteTable(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid Table ID")
+		return
+	}
+	t := table{ID: id}
+	if err := t.deleteTable(a.DB); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
 
 //////////////////////////////floors

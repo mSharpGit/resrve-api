@@ -30,7 +30,7 @@ func main() {
 
 	//**********mail initialization************//
 
-	mail.Initialize(config.Smtp.Port, config.Smtp.Host, config.Smtp.Username, config.Smtp.Password, config.Smtp.From, config.Smtp.CC)
+	mail.Initialize(config.SMTP.Port, config.SMTP.Host, config.SMTP.Username, config.SMTP.Password, config.SMTP.From, config.SMTP.CC)
 
 	//**********************//
 
@@ -58,5 +58,5 @@ func main() {
 	// You need to set your Username and Password here
 	//database new host
 	a.Initialize(config.DB.User, config.DB.Password, config.DB.Server, config.DB.Port, config.DB.Dbname)
-	a.Run(":" + config.Api.Listener)
+	a.Run(":" + config.API.Listener)
 }

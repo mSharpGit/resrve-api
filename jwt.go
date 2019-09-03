@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/context"
 )
 
+//JwtToken holds the jwt data that will be sent after user authentication
 type JwtToken struct {
 	UserID       int    `json:"user_id"`
 	RestaurantID int    `json:"restaurant_id"`
@@ -24,12 +25,14 @@ type JwtToken struct {
 	Exp          int64  `json:"exp"`
 }
 
+//UserInfo : it holds the user info that sent after authentication
 type UserInfo struct {
 	ID   int
 	Name string
 	Role string
 }
 
+//UserClaims : it holds the user token and info
 type UserClaims struct {
 	*jwt.StandardClaims
 	TokenType string
@@ -46,6 +49,7 @@ var (
 	signKey   *rsa.PrivateKey
 )
 
+//Initialize : initializes the jwt token
 func (j *JwtToken) Initialize() {
 	var err error
 
@@ -99,6 +103,7 @@ func createToken(user users) JwtToken {
 	//return t.SignedString(signKey)
 }
 
+//ValidateMiddleware : validate the token on each API call
 func ValidateMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	log.Println("Middleware called.................")
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
